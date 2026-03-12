@@ -2,7 +2,7 @@ name: CI/CD Pipeline
 on:
   push:
     branches: [ "main" ]
-    #paths: [ "app/**" ]  Only runs if app changes
+    # paths: [ "app/**" ] # Temporarily disabled so this run triggers on your commit
 
 permissions:
   id-token: write
@@ -12,16 +12,17 @@ jobs:
   build-deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-      # 1. AWS Login (OIDC)
+      # 1. AWS Login (OIDC) - Using v4 to avoid Node 20 deprecation
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v3
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::867958227684:role/GitHubActions-Deploy-Role
           aws-region: us-east-1
 
-      # 2. Get Docker Hub Password
+      # 2. Get Docker Hub Password from AWS Secrets Manager
       - name: Get Secrets
         uses: aws-actions/aws-secretsmanager-get-secrets@v2
         id: dockerhub
@@ -29,11 +30,11 @@ jobs:
           secret-ids: |
             dockerhub-credentials
           parse-json-secrets: true
-          
-      # 3. Docker Build & Push
+
+      # 3. Docker Build & Push (Using aakashh2001 for Docker Hub)
       - name: Login to Docker Hub
-        run: docker login -u ${{ steps.dockerhub.outputs.username }} -p ${{ steps.dockerhub.outputs.password }}
-      
+        run: echo "${{ steps.dockerhub.outputs.password }}" | docker login -u "${{ steps.dockerhub.outputs.username }}" --password-stdin
+
       - name: Build Image
         run: |
           TAG=$(echo $GITHUB_SHA | cut -c1-7)
@@ -41,22 +42,19 @@ jobs:
           docker push aakashh2001/python-app:$TAG
           echo "IMAGE_TAG=$TAG" >> $GITHUB_ENV
 
-     # 4. GitOps Update
+      # 4. GitOps Update (Using aakashhh2001 for GitHub Config)
       - name: Update Manifest
         run: |
-          # 1. Update the image tag in the YAML file
-          # Pattern matches aakashh2001 (Docker Hub)
+          # Pattern matches aakashh2001 in your deployment.yaml
           sed -i "s|image: aakashh2001/python-app:.*|image: aakashh2001/python-app:${{ env.IMAGE_TAG }}|g" k8s/deployment.yaml
           
-          # 2. Configure Git using your GitHub username
           git config user.name "aakashhh2001"
           git config user.email "actions@github.com"
           
-          # 3. Commit and Push to your GitHub Repo
           git add k8s/deployment.yaml
           git commit -m "Update image to ${{ env.IMAGE_TAG }}"
           git push
-          
+
       # 5. Email Notification
       - name: Send SES Email
         run: |
