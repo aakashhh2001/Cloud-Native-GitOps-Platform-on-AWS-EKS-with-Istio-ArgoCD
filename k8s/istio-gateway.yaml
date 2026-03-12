@@ -1,0 +1,45 @@
+# 1. Gateway: Receives traffic from ALB
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: main-gateway
+  namespace: default
+spec:
+  selector:
+    istio: ingress
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"
+---
+# 2. VirtualService: Routes based on URL path
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: main-vs
+  namespace: default
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - main-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /python
+    route:
+    - destination:
+        host: python-service
+        port:
+          number: 80
+  - match:
+    - uri:
+        prefix: /nginx
+    route:
+    - destination:
+        host: nginx-service
+        port:
+          number: 80
