@@ -26,9 +26,10 @@ jobs:
         uses: aws-actions/aws-secretsmanager-get-secrets@v2
         id: dockerhub
         with:
-          secret-id: dockerhub-credentials
+          secret-ids: |
+            dockerhub-credentials
           parse-json-secrets: true
-
+          
       # 3. Docker Build & Push
       - name: Login to Docker Hub
         run: docker login -u ${{ steps.dockerhub.outputs.username }} -p ${{ steps.dockerhub.outputs.password }}
