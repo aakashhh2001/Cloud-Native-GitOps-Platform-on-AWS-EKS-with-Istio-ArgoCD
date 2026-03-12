@@ -23,7 +23,7 @@ jobs:
 
       # 2. Get Docker Hub Password
       - name: Get Secrets
-        uses: aws-actions/aws-secretsmanager-get-secret@v1
+        uses: aws-actions/aws-secretsmanager-get-secrets@v2
         id: dockerhub
         with:
           secret-id: dockerhub-credentials
