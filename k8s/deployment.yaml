@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: python-app
-        image: <YOUR_DOCKER_USER>/python-app:latest # CI will update this
+        image: aakashhh2001/python-app:latest # CI will update this
         ports:
         - containerPort: 5000
 ---
