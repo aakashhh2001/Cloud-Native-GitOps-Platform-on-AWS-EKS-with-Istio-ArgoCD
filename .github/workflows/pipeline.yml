@@ -2,7 +2,7 @@ name: CI/CD Pipeline
 on:
   push:
     branches: [ "main" ]
-    paths: [ "app/**" ] # Only runs if app changes
+    #paths: [ "app/**" ]  Only runs if app changes
 
 permissions:
   id-token: write
@@ -40,16 +40,22 @@ jobs:
           docker push aakashh2001/python-app:$TAG
           echo "IMAGE_TAG=$TAG" >> $GITHUB_ENV
 
-      # 4. GitOps Update
+     # 4. GitOps Update
       - name: Update Manifest
         run: |
+          # 1. Update the image tag in the YAML file
+          # Pattern matches aakashh2001 (Docker Hub)
           sed -i "s|image: aakashh2001/python-app:.*|image: aakashh2001/python-app:${{ env.IMAGE_TAG }}|g" k8s/deployment.yaml
-          git config user.name "GitHub Actions"
+          
+          # 2. Configure Git using your GitHub username
+          git config user.name "aakashhh2001"
           git config user.email "actions@github.com"
+          
+          # 3. Commit and Push to your GitHub Repo
           git add k8s/deployment.yaml
           git commit -m "Update image to ${{ env.IMAGE_TAG }}"
           git push
-
+          
       # 5. Email Notification
       - name: Send SES Email
         run: |
