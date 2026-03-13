@@ -1,5 +1,7 @@
 # Cloud-Native GitOps Platform on AWS EKS with Istio & ArgoCD
 
+![Cloud-Native Architecture](./architecture_diagram.png)
+
 ## 🚀 Project Overview
 This project demonstrates a fully automated, production-ready Continuous Integration and Continuous Deployment (CI/CD) pipeline using the **GitOps** methodology. It provisions a highly available Kubernetes cluster on AWS using Infrastructure as Code (IaC) and automates the deployment of a Python application. 
 
