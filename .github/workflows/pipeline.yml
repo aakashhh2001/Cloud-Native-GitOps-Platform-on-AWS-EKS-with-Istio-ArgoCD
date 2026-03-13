@@ -45,16 +45,22 @@ jobs:
       # 4. GitOps Update (Using aakashhh2001 for GitHub Config)
       - name: Update Manifest
         run: |
-          # Pattern matches aakashh2001 in your deployment.yaml
-          sed -i "s|image: aakashh2001/python-app:.*|image: aakashh2001/python-app:${{ env.IMAGE_TAG }}|g" k8s/deployment.yaml
+          # Foolproof sed: Matches ANY username before /python-app and forces the correct one
+          sed -i "s|image: .*/python-app:.*|image: aakashh2001/python-app:${{ env.IMAGE_TAG }}|g" k8s/deployment.yaml
           
           git config user.name "aakashhh2001"
           git config user.email "actions@github.com"
           
           git add k8s/deployment.yaml
-          git commit -m "Update image to ${{ env.IMAGE_TAG }}"
-          git push
-
+          
+          # Smart commit: Only commits if sed actually changed something
+          if ! git diff --staged --quiet; then
+            git commit -m "Update image to ${{ env.IMAGE_TAG }}"
+            git push
+          else
+            echo "No changes to commit. Manifest is already up to date."
+          fi
+          
       # 5. Email Notification
       - name: Send SES Email
         run: |
