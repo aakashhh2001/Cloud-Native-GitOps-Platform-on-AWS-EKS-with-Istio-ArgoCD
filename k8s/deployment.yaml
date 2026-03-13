@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: python-app
-        image: aakashh2001/python-app:076dcfc
+        image: aakashh2001/python-app:7b559fa
         ports:
         - containerPort: 5000
 ---
